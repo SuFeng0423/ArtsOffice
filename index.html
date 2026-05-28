@@ -171,7 +171,12 @@
     display:flex;align-items:center;gap:8px;
   }
   .mock-card-body{padding:18px;background:#fff}
-  .mock-card-body-scroll{overflow:auto}
+  .mock-card-body-scroll{
+    overflow-x:auto;
+    overflow-y:hidden;
+    overscroll-behavior-x:contain;
+    overscroll-behavior-y:none;
+  }
   .mock-sidebar{
     width:200px;height:320px;border-radius:var(--radius-sm);padding:16px;
     display:flex;flex-direction:column;gap:12px;
@@ -208,7 +213,10 @@
     border:1px dashed #d9dee6;
     padding:12px;
     min-height:280px;
-    overflow:auto;
+    overflow-x:auto;
+    overflow-y:hidden;
+    overscroll-behavior-x:contain;
+    overscroll-behavior-y:none;
   }
   .preview-grid{
     display:grid;
@@ -305,7 +313,7 @@
     .compare-grid{grid-template-columns:repeat(2,1fr)}
     .mock-section{grid-template-columns:1fr}
     .detail-section{padding:20px 24px}
-    .preview-grid{min-width:520px}
+    .preview-grid{min-width:500px}
   }
   @media(max-width:640px){
     .container{padding:16px}
@@ -330,11 +338,10 @@
     .mock-sidebar{width:100%;height:auto}
     .mock-timetable{grid-template-columns:48px repeat(5,1fr)}
     .mock-phone{width:100%;max-width:240px;height:auto;aspect-ratio:1/2}
-    .teacher-layout{grid-template-columns:1fr}
-    .student-layout{flex-direction:column;gap:16px;padding:8px 0}
+    .teacher-layout,.student-layout{display:block}
     .student-side{max-width:none;width:100%;padding-top:0}
     .preview-shell{padding:10px;min-height:220px}
-    .preview-grid{min-width:460px;gap:8px}
+    .preview-grid{min-width:440px;gap:8px}
     .preview-block{min-height:56px;font-size:10px}
   }
   @media(hover:none){
@@ -373,11 +380,28 @@
   }
   .detail-nav .nav-btn:hover{border-color:#6366f1;color:#6366f1}
   .detail-nav .nav-btn.disabled{opacity:.3;pointer-events:none}
-  .teacher-layout{display:grid;grid-template-columns:1fr 2fr;gap:16px}
-  .student-layout{display:flex;justify-content:center;align-items:flex-start;gap:40px;padding:20px 0}
-  .student-side{flex:1;max-width:320px;display:flex;flex-direction:column;gap:16px;padding-top:8px}
+  .teacher-layout,.student-layout{display:block}
+  .student-side{width:100%;max-width:none;display:block;padding-top:0}
   .btn,.scheme-card,.compare-col,.nav-btn,.detail-close,.color-dot,.palette-swatch{
     -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  }
+  .mock-card-body-scroll::-webkit-scrollbar,
+  .preview-shell::-webkit-scrollbar{height:10px;width:10px}
+  .mock-card-body-scroll::-webkit-scrollbar-track,
+  .preview-shell::-webkit-scrollbar-track{
+    background:linear-gradient(90deg,#edf1f6,#e4e9f1);
+    border-radius:999px;
+  }
+  .mock-card-body-scroll::-webkit-scrollbar-thumb,
+  .preview-shell::-webkit-scrollbar-thumb{
+    background:linear-gradient(90deg,#8aa0c8,#647aa5);
+    border-radius:999px;
+    border:2px solid transparent;
+    background-clip:padding-box;
+  }
+  .mock-card-body-scroll::-webkit-scrollbar-thumb:hover,
+  .preview-shell::-webkit-scrollbar-thumb:hover{
+    background:linear-gradient(90deg,#768fbe,#53698f);
   }
 </style>
 </head>
@@ -619,30 +643,20 @@ function renderDetail(idx){
   // Teacher mock
   const teacherMock = `
     <div class="teacher-layout">
-      <div class="mock-sidebar" style="background:${t.primary}">
-        <div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:8px">${s.icon} Web 端</div>
-        ${['信息概览','视频管理','承继关系','人员管理','系统管理'].map((n,i)=>
-          `<div class="nav-item${i===0?' active':''}" style="color:${i===0?'#fff':'rgba(255,255,255,.7)'};background:${i===0?'rgba(255,255,255,.16)':'transparent'}">${n}</div>`
-        ).join('')}
-      </div>
-      <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="mock-card" style="border-color:${t.border}">
-          <div class="mock-card-header" style="background:${t.primary}">Web 端模块布局预览</div>
-          <div class="mock-card-body mock-card-body-scroll" style="background:${t.bg}">
-            <div class="preview-shell" style="background:${t.card}">
-              <div class="preview-grid">
-                <div class="preview-block preview-col-12" style="background:${t.primary}">顶部导航区</div>
-                <div class="preview-block preview-col-3" style="background:${t.secondary}">信息概览</div>
-                <div class="preview-block preview-col-3 light" style="background:${t.primary}18">视频管理</div>
-                <div class="preview-block preview-col-3 light" style="background:${t.secondary}18">承继关系</div>
-                <div class="preview-block preview-col-3 light" style="background:${t.accent}1f">人员管理</div>
-                <div class="preview-block preview-col-8 light" style="background:${t.bg};border-color:${t.border}">主内容展示区</div>
-                <div class="preview-block preview-col-4 light" style="background:${t.secondary}16">系统管理</div>
-                <div class="preview-block preview-col-4 light" style="background:${t.primary}14">模块详情区 A</div>
-                <div class="preview-block preview-col-4 light" style="background:${t.accent}1f">模块详情区 B</div>
-                <div class="preview-block preview-col-4 light" style="background:${t.secondary}16">模块详情区 C</div>
-                <div class="preview-block preview-col-12 light" style="background:${t.bg};border-color:${t.border}">底部扩展区</div>
-              </div>
+      <div class="mock-card" style="border-color:${t.border}">
+        <div class="mock-card-header" style="background:${t.primary}">教师端模块布局预览（Web）</div>
+        <div class="mock-card-body mock-card-body-scroll" style="background:${t.bg}">
+          <div class="preview-shell" style="background:${t.card}">
+            <div class="preview-grid">
+              <div class="preview-block preview-col-12" style="background:${t.primary}">顶部导航区</div>
+              <div class="preview-block preview-col-4 light" style="background:${t.primary}18">信息概览</div>
+              <div class="preview-block preview-col-4 light" style="background:${t.secondary}18">视频管理</div>
+              <div class="preview-block preview-col-4 light" style="background:${t.accent}1f">承继关系</div>
+              <div class="preview-block preview-col-6 light" style="background:${t.secondary}16">人员管理</div>
+              <div class="preview-block preview-col-6 light" style="background:${t.primary}14">系统管理</div>
+              <div class="preview-block preview-col-8 light" style="background:${t.bg};border-color:${t.border}">主内容展示区</div>
+              <div class="preview-block preview-col-4 light" style="background:${t.secondary}16">筛选/工具区</div>
+              <div class="preview-block preview-col-12 light" style="background:${t.bg};border-color:${t.border}">底部扩展区</div>
             </div>
           </div>
         </div>
@@ -653,37 +667,18 @@ function renderDetail(idx){
   // Student mock
   const studentMock = `
     <div class="student-layout">
-      <div class="mock-phone">
-        <div class="mock-phone-notch"></div>
-        <div class="mock-phone-screen" style="background:${st.bg}">
-          <div class="preview-shell" style="background:${st.card};min-height:100%;padding:10px">
-            <div class="preview-grid" style="min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-              <div class="preview-block" style="grid-column:span 2;background:${st.gradient||st.primary};min-height:52px">顶部信息区</div>
-              <div class="preview-block light" style="background:${st.primary}18;min-height:66px">视频库</div>
-              <div class="preview-block light" style="background:${st.accent}20;min-height:66px">成绩查询</div>
-              <div class="preview-block light" style="background:${st.secondary}18;min-height:66px">个人中心</div>
-              <div class="preview-block light" style="background:${st.primary}14;min-height:66px">快捷入口区</div>
-              <div class="preview-block" style="grid-column:span 2;background:${st.primary};min-height:44px">底部操作区</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="student-side">
-        <div class="mock-card" style="border-color:${st.border}">
-          <div class="mock-card-header" style="background:${st.primary}">小程序端模块布局预览</div>
-          <div class="mock-card-body mock-card-body-scroll" style="background:${st.bg}">
-            <div class="preview-shell" style="background:${st.card}">
-              <div class="preview-grid">
-                <div class="preview-block preview-col-12" style="background:${st.gradient||st.primary}">顶部入口区</div>
-                <div class="preview-block preview-col-6 light" style="background:${st.primary}16">视频库</div>
-                <div class="preview-block preview-col-6 light" style="background:${st.secondary}16">成绩查询</div>
-                <div class="preview-block preview-col-4 light" style="background:${st.accent}1f">个人中心</div>
-                <div class="preview-block preview-col-4 light" style="background:${st.primary}15">常用功能区</div>
-                <div class="preview-block preview-col-4 light" style="background:${st.secondary}16">消息提示区</div>
-                <div class="preview-block preview-col-8 light" style="background:${st.bg};border-color:${st.border}">内容流区</div>
-                <div class="preview-block preview-col-4 light" style="background:${st.accent}1f">辅助操作区</div>
-                <div class="preview-block preview-col-12" style="background:${st.primary}">底部导航区</div>
-              </div>
+      <div class="mock-card" style="border-color:${st.border}">
+        <div class="mock-card-header" style="background:${st.primary}">学生小程序端模块布局预览</div>
+        <div class="mock-card-body mock-card-body-scroll" style="background:${st.bg}">
+          <div class="preview-shell" style="background:${st.card}">
+            <div class="preview-grid">
+              <div class="preview-block preview-col-12" style="background:${st.gradient||st.primary}">顶部入口区</div>
+              <div class="preview-block preview-col-4 light" style="background:${st.primary}16">视频库</div>
+              <div class="preview-block preview-col-4 light" style="background:${st.secondary}16">成绩查询</div>
+              <div class="preview-block preview-col-4 light" style="background:${st.accent}1f">个人中心</div>
+              <div class="preview-block preview-col-8 light" style="background:${st.bg};border-color:${st.border}">内容展示区</div>
+              <div class="preview-block preview-col-4 light" style="background:${st.accent}1f">辅助操作区</div>
+              <div class="preview-block preview-col-12" style="background:${st.primary}">底部导航区</div>
             </div>
           </div>
         </div>
@@ -705,17 +700,9 @@ function renderDetail(idx){
       <button class="nav-btn ${canNext?'':'disabled'}" onclick="${canNext?`openDetail(${idx+1})`:''}">下一方案 →</button>
       <button class="nav-btn" onclick="closeDetail()" style="margin-left:auto">返回总览</button>
     </div>
-    <div class="detail-section">
-      <h3>🎨 教师端色板（教务系统）</h3>
-      ${paletteHTML(t,'教师端')}
-    </div>
     <div class="detail-section" style="background:${t.bg};border-top:1px solid ${t.border};border-bottom:1px solid ${t.border}">
       <h3>🖥️ 教师端 UI 预览</h3>
       ${teacherMock}
-    </div>
-    <div class="detail-section">
-      <h3>📱 学生端色板（小程序）</h3>
-      ${paletteHTML(st,'学生端')}
     </div>
     <div class="detail-section" style="background:${st.bg};border-top:1px solid ${st.border};border-bottom:1px solid ${st.border}">
       <h3>📱 学生端 UI 预览</h3>
