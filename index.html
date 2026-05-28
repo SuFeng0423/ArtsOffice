@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>音乐艺考教务系统 — 配色方案总览</title>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -15,7 +15,7 @@
     --radius-sm:8px;
     --font:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
   }
-  html{scroll-behavior:smooth}
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
   body{font-family:var(--font);background:#eef1f5;color:#1a1a2e;line-height:1.6;overflow-x:hidden}
 
   /* ===== Header ===== */
@@ -57,6 +57,7 @@
     background:#fff;border-radius:var(--radius);overflow:hidden;
     box-shadow:var(--shadow-sm);cursor:pointer;
     transition:all .35s var(--ease);position:relative;
+    contain:layout paint;
   }
   .scheme-card:hover{
     transform:translateY(-6px);box-shadow:var(--shadow-lg);
@@ -121,6 +122,7 @@
     box-shadow:-8px 0 40px rgba(0,0,0,.15);
     transition:right .45s var(--ease);
     overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;
   }
   .detail-panel.open{right:0}
   .detail-inner{padding:0}
@@ -203,7 +205,7 @@
   .mock-phone{
     width:180px;height:360px;border-radius:24px;overflow:hidden;
     box-shadow:0 4px 20px rgba(0,0,0,.12);border:3px solid #222;
-    margin:0 auto;position:relative;
+    margin:0 auto;position:relative;flex-shrink:0;
   }
   .mock-phone-notch{
     width:80px;height:18px;background:#222;border-radius:0 0 12px 12px;
@@ -235,6 +237,7 @@
     background:#fff;border-radius:var(--radius);overflow:hidden;
     box-shadow:var(--shadow-sm);transition:all .35s var(--ease);
     cursor:pointer;
+    contain:layout paint;
   }
   .compare-col:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
   .compare-col .col-header{
@@ -275,6 +278,38 @@
     .container{padding:16px}
     .compare-grid{grid-template-columns:1fr}
     .detail-panel{width:100vw}
+    .header{padding:0 14px;height:56px}
+    .header h1{font-size:14px}
+    .btn{padding:7px 14px;font-size:12px}
+    .overview-grid{grid-template-columns:1fr;gap:14px}
+    .scheme-card .card-header{height:100px;padding:12px 14px}
+    .scheme-card .card-header .label{font-size:18px}
+    .scheme-card .colors-row{padding:10px 14px}
+    .scheme-card .card-body{padding:10px 14px 6px}
+    .scheme-card .side-labels{padding:8px 14px 12px}
+    .detail-hero{height:160px;padding:18px 16px}
+    .detail-hero h2{font-size:20px}
+    .detail-nav{padding:12px 16px 0;flex-wrap:wrap}
+    .detail-nav .nav-btn{font-size:11px;padding:6px 10px}
+    .detail-nav .nav-btn:last-child{margin-left:0}
+    .detail-section{padding:16px}
+    .palette-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .mock-sidebar{width:100%;height:auto}
+    .mock-timetable{grid-template-columns:48px repeat(5,1fr)}
+    .mock-phone{width:100%;max-width:240px;height:auto;aspect-ratio:1/2}
+    .teacher-layout{grid-template-columns:1fr}
+    .student-layout{flex-direction:column;gap:16px;padding:8px 0}
+    .student-side{max-width:none;width:100%;padding-top:0}
+  }
+  @media(hover:none){
+    .scheme-card:hover,.compare-col:hover,.color-dot:hover,.palette-swatch:hover{
+      transform:none;
+      box-shadow:var(--shadow-sm);
+    }
+    .color-dot .hex{display:none}
+  }
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   }
 
   /* Scrollbar */
@@ -302,6 +337,12 @@
   }
   .detail-nav .nav-btn:hover{border-color:#6366f1;color:#6366f1}
   .detail-nav .nav-btn.disabled{opacity:.3;pointer-events:none}
+  .teacher-layout{display:grid;grid-template-columns:200px 1fr;gap:16px}
+  .student-layout{display:flex;justify-content:center;align-items:flex-start;gap:40px;padding:20px 0}
+  .student-side{flex:1;max-width:320px;display:flex;flex-direction:column;gap:16px;padding-top:8px}
+  .btn,.scheme-card,.compare-col,.nav-btn,.detail-close,.color-dot,.palette-swatch{
+    -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  }
 </style>
 </head>
 <body>
@@ -434,6 +475,7 @@ const schemes = [
 ];
 
 let currentIdx = 0;
+const canHover = window.matchMedia('(hover:hover)').matches;
 
 // ===== RENDER OVERVIEW =====
 function renderOverview(){
@@ -540,7 +582,7 @@ function renderDetail(idx){
 
   // Teacher mock
   const teacherMock = `
-    <div style="display:grid;grid-template-columns:200px 1fr;gap:16px">
+    <div class="teacher-layout">
       <div class="mock-sidebar" style="background:${t.primary}">
         <div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:8px">${s.icon} 教务系统</div>
         ${['首页概览','排课管理','学生管理','签到记录','成绩管理','系统设置'].map((n,i)=>
@@ -598,7 +640,7 @@ function renderDetail(idx){
 
   // Student mock
   const studentMock = `
-    <div style="display:flex;justify-content:center;align-items:flex-start;gap:40px;padding:20px 0">
+    <div class="student-layout">
       <div class="mock-phone">
         <div class="mock-phone-notch"></div>
         <div class="mock-phone-screen" style="background:${st.bg}">
@@ -633,7 +675,7 @@ function renderDetail(idx){
           </div>
         </div>
       </div>
-      <div style="flex:1;max-width:320px;display:flex;flex-direction:column;gap:16px;padding-top:8px">
+      <div class="student-side">
         <div style="background:${st.bg};border-radius:12px;padding:16px;border:1px solid ${st.border}">
           <div style="font-size:13px;font-weight:700;color:${st.text};margin-bottom:12px">学生端特色</div>
           <div style="display:flex;flex-direction:column;gap:8px">
@@ -727,28 +769,35 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowRight' && currentIdx<schemes.length-1) openDetail(currentIdx+1);
 });
 
-// Header scroll effect
+// Header scroll effect (rAF throttle + passive)
+let ticking = false;
 window.addEventListener('scroll',()=>{
-  document.getElementById('header').classList.toggle('scrolled', window.scrollY > 10);
-});
+  if(ticking) return;
+  ticking = true;
+  requestAnimationFrame(()=>{
+    document.getElementById('header').classList.toggle('scrolled', window.scrollY > 10);
+    ticking = false;
+  });
+},{ passive:true });
 
-// Color tooltip
-document.addEventListener('mouseover',e=>{
-  const dot = e.target.closest('[data-hex]');
-  if(dot){
+// Color tooltip (desktop only)
+if(canHover){
+  document.addEventListener('mouseover',e=>{
+    const dot = e.target.closest('[data-hex]');
+    if(!dot || !dot.dataset.hex) return;
     const tip = document.getElementById('colorTip');
     tip.textContent = dot.dataset.hex;
     tip.classList.add('show');
     const r = dot.getBoundingClientRect();
-    tip.style.left = (r.left + r.width/2 - 30) + 'px';
+    tip.style.left = (r.left + r.width / 2 - 30) + 'px';
     tip.style.top = (r.top - 32) + 'px';
-  }
-});
-document.addEventListener('mouseout',e=>{
-  if(e.target.closest('[data-hex]')){
-    document.getElementById('colorTip').classList.remove('show');
-  }
-});
+  });
+  document.addEventListener('mouseout',e=>{
+    if(e.target.closest('[data-hex]')){
+      document.getElementById('colorTip').classList.remove('show');
+    }
+  });
+}
 
 // Init
 renderOverview();
