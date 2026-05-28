@@ -175,7 +175,7 @@
     overflow-x:auto;
     overflow-y:hidden;
     overscroll-behavior-x:contain;
-    overscroll-behavior-y:none;
+    overscroll-behavior-y:auto;
   }
   .mock-sidebar{
     width:200px;height:320px;border-radius:var(--radius-sm);padding:16px;
@@ -216,7 +216,7 @@
     overflow-x:auto;
     overflow-y:hidden;
     overscroll-behavior-x:contain;
-    overscroll-behavior-y:none;
+    overscroll-behavior-y:auto;
   }
   .preview-grid{
     display:grid;
@@ -648,15 +648,15 @@ function renderDetail(idx){
         <div class="mock-card-body mock-card-body-scroll" style="background:${t.bg}">
           <div class="preview-shell" style="background:${t.card}">
             <div class="preview-grid">
-              <div class="preview-block preview-col-12" style="background:${t.primary}">顶部导航区</div>
-              <div class="preview-block preview-col-4 light" style="background:${t.primary}18">信息概览</div>
-              <div class="preview-block preview-col-4 light" style="background:${t.secondary}18">视频管理</div>
-              <div class="preview-block preview-col-4 light" style="background:${t.accent}1f">承继关系</div>
-              <div class="preview-block preview-col-6 light" style="background:${t.secondary}16">人员管理</div>
-              <div class="preview-block preview-col-6 light" style="background:${t.primary}14">系统管理</div>
-              <div class="preview-block preview-col-8 light" style="background:${t.bg};border-color:${t.border}">主内容展示区</div>
-              <div class="preview-block preview-col-4 light" style="background:${t.secondary}16">筛选/工具区</div>
-              <div class="preview-block preview-col-12 light" style="background:${t.bg};border-color:${t.border}">底部扩展区</div>
+              <div class="preview-block preview-col-12" style="background:${t.primary}">公共导航信息栏（顶部）</div>
+              <div class="preview-block preview-col-3 light" style="background:${t.secondary}1f">菜单栏（左侧）</div>
+              <div class="preview-block preview-col-9 light" style="background:${t.bg};border-color:${t.border}">主要内容展示区（右侧）</div>
+              <div class="preview-block preview-col-3 light" style="background:${t.primary}18">信息概览</div>
+              <div class="preview-block preview-col-3 light" style="background:${t.secondary}18">视频管理</div>
+              <div class="preview-block preview-col-3 light" style="background:${t.accent}1f">承继关系</div>
+              <div class="preview-block preview-col-3 light" style="background:${t.primary}14">人员管理</div>
+              <div class="preview-block preview-col-3 light" style="background:${t.secondary}16">系统管理</div>
+              <div class="preview-block preview-col-9 light" style="background:${t.bg};border-color:${t.border}">数据表格 / 详情 / 操作区</div>
             </div>
           </div>
         </div>
@@ -672,13 +672,13 @@ function renderDetail(idx){
         <div class="mock-card-body mock-card-body-scroll" style="background:${st.bg}">
           <div class="preview-shell" style="background:${st.card}">
             <div class="preview-grid">
-              <div class="preview-block preview-col-12" style="background:${st.gradient||st.primary}">顶部入口区</div>
+              <div class="preview-block preview-col-12" style="background:${st.gradient||st.primary}">内容展示区（顶部）</div>
+              <div class="preview-block preview-col-6 light" style="background:${st.bg};border-color:${st.border}">列表内容区</div>
+              <div class="preview-block preview-col-6 light" style="background:${st.secondary}16">详情内容区</div>
               <div class="preview-block preview-col-4 light" style="background:${st.primary}16">视频库</div>
               <div class="preview-block preview-col-4 light" style="background:${st.secondary}16">成绩查询</div>
               <div class="preview-block preview-col-4 light" style="background:${st.accent}1f">个人中心</div>
-              <div class="preview-block preview-col-8 light" style="background:${st.bg};border-color:${st.border}">内容展示区</div>
-              <div class="preview-block preview-col-4 light" style="background:${st.accent}1f">辅助操作区</div>
-              <div class="preview-block preview-col-12" style="background:${st.primary}">底部导航区</div>
+              <div class="preview-block preview-col-12" style="background:${st.primary}">菜单导航（底部）</div>
             </div>
           </div>
         </div>
