@@ -171,6 +171,7 @@
     display:flex;align-items:center;gap:8px;
   }
   .mock-card-body{padding:18px;background:#fff}
+  .mock-card-body-scroll{overflow:auto}
   .mock-sidebar{
     width:200px;height:320px;border-radius:var(--radius-sm);padding:16px;
     display:flex;flex-direction:column;gap:12px;
@@ -202,6 +203,37 @@
     border-radius:4px;color:#fff;font-weight:600;padding:4px 2px;
     font-size:10px;
   }
+  .preview-shell{
+    border-radius:var(--radius-sm);
+    border:1px dashed #d9dee6;
+    padding:12px;
+    min-height:280px;
+    overflow:auto;
+  }
+  .preview-grid{
+    display:grid;
+    grid-template-columns:repeat(12,minmax(0,1fr));
+    gap:10px;
+    min-width:560px;
+  }
+  .preview-block{
+    border-radius:10px;
+    min-height:64px;
+    border:1px solid rgba(0,0,0,.06);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:11px;
+    font-weight:700;
+    color:rgba(255,255,255,.92);
+    letter-spacing:.02em;
+  }
+  .preview-block.light{color:#2f3640}
+  .preview-col-12{grid-column:span 12}
+  .preview-col-8{grid-column:span 8}
+  .preview-col-6{grid-column:span 6}
+  .preview-col-4{grid-column:span 4}
+  .preview-col-3{grid-column:span 3}
   .mock-phone{
     width:180px;height:360px;border-radius:24px;overflow:hidden;
     box-shadow:0 4px 20px rgba(0,0,0,.12);border:3px solid #222;
@@ -273,6 +305,7 @@
     .compare-grid{grid-template-columns:repeat(2,1fr)}
     .mock-section{grid-template-columns:1fr}
     .detail-section{padding:20px 24px}
+    .preview-grid{min-width:520px}
   }
   @media(max-width:640px){
     .container{padding:16px}
@@ -300,6 +333,9 @@
     .teacher-layout{grid-template-columns:1fr}
     .student-layout{flex-direction:column;gap:16px;padding:8px 0}
     .student-side{max-width:none;width:100%;padding-top:0}
+    .preview-shell{padding:10px;min-height:220px}
+    .preview-grid{min-width:460px;gap:8px}
+    .preview-block{min-height:56px;font-size:10px}
   }
   @media(hover:none){
     .scheme-card:hover,.compare-col:hover,.color-dot:hover,.palette-swatch:hover{
@@ -584,53 +620,29 @@ function renderDetail(idx){
   const teacherMock = `
     <div class="teacher-layout">
       <div class="mock-sidebar" style="background:${t.primary}">
-        <div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:8px">${s.icon} 教务系统</div>
-        ${['首页概览','排课管理','学生管理','签到记录','成绩管理','系统设置'].map((n,i)=>
-          `<div class="nav-item${i===0?' active':''}" style="color:${i===0?'#fff':'rgba(255,255,255,.65)'};background:${i===0?'rgba(255,255,255,.15)':'transparent'}">${n}</div>`
+        <div style="color:#fff;font-size:13px;font-weight:700;margin-bottom:8px">${s.icon} Web 端</div>
+        ${['信息概览','视频管理','承继关系','人员管理','系统管理'].map((n,i)=>
+          `<div class="nav-item${i===0?' active':''}" style="color:${i===0?'#fff':'rgba(255,255,255,.7)'};background:${i===0?'rgba(255,255,255,.16)':'transparent'}">${n}</div>`
         ).join('')}
       </div>
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-          <div class="mock-stat" style="background:${t.primary}10;border:1px solid ${t.primary}20">
-            <div class="num" style="color:${t.primary}">128</div>
-            <div class="label" style="color:${t.muted}">在读学生</div>
-          </div>
-          <div class="mock-stat" style="background:${t.secondary}10;border:1px solid ${t.secondary}20">
-            <div class="num" style="color:${t.secondary}">16</div>
-            <div class="label" style="color:${t.muted}">今日课程</div>
-          </div>
-          <div class="mock-stat" style="background:${t.accent}10;border:1px solid ${t.accent}20">
-            <div class="num" style="color:${t.accent}">96%</div>
-            <div class="label" style="color:${t.muted}">出勤率</div>
-          </div>
-        </div>
         <div class="mock-card" style="border-color:${t.border}">
-          <div class="mock-card-header" style="background:${t.primary}">本周课程表</div>
-          <div class="mock-card-body" style="background:${t.bg}">
-            <div class="mock-timetable">
-              <div class="cell header-cell" style="background:${t.primary};color:#fff"></div>
-              ${['周一','周二','周三','周四','周五'].map(d=>
-                `<div class="cell header-cell" style="background:${t.primary};color:#fff">${d}</div>`
-              ).join('')}
-              ${['09:00','10:00','14:00','15:00'].map((time,ri)=>
-                `<div class="cell" style="background:${t.bg};color:${t.muted};font-weight:600;font-size:10px">${time}</div>`+
-                Array.from({length:5},(_,ci)=>{
-                  const courses = [
-                    [t.secondary,t.accent,'','',''],
-                    [t.accent,'',t.secondary,'',''],
-                    ['',t.secondary,'',t.accent,''],
-                    ['',t.secondary,t.accent,'','']
-                  ];
-                  const c = courses[ri][ci];
-                  const names = [
-                    ['声乐','','钢琴','',''],
-                    ['乐理','','声乐','',''],
-                    ['','钢琴','','乐理',''],
-                    ['','钢琴','视唱','','']
-                  ];
-                  return c?`<div class="cell"><div class="course" style="background:${c}">${names[ri][ci]}</div></div>`:'<div class="cell"></div>';
-                }).join('')
-              ).join('')}
+          <div class="mock-card-header" style="background:${t.primary}">Web 端模块布局预览</div>
+          <div class="mock-card-body mock-card-body-scroll" style="background:${t.bg}">
+            <div class="preview-shell" style="background:${t.card}">
+              <div class="preview-grid">
+                <div class="preview-block preview-col-12" style="background:${t.primary}">顶部导航区</div>
+                <div class="preview-block preview-col-3" style="background:${t.secondary}">信息概览</div>
+                <div class="preview-block preview-col-3 light" style="background:${t.primary}18">视频管理</div>
+                <div class="preview-block preview-col-3 light" style="background:${t.secondary}18">承继关系</div>
+                <div class="preview-block preview-col-3 light" style="background:${t.accent}1f">人员管理</div>
+                <div class="preview-block preview-col-8 light" style="background:${t.bg};border-color:${t.border}">主内容展示区</div>
+                <div class="preview-block preview-col-4 light" style="background:${t.secondary}16">系统管理</div>
+                <div class="preview-block preview-col-4 light" style="background:${t.primary}14">模块详情区 A</div>
+                <div class="preview-block preview-col-4 light" style="background:${t.accent}1f">模块详情区 B</div>
+                <div class="preview-block preview-col-4 light" style="background:${t.secondary}16">模块详情区 C</div>
+                <div class="preview-block preview-col-12 light" style="background:${t.bg};border-color:${t.border}">底部扩展区</div>
+              </div>
             </div>
           </div>
         </div>
@@ -644,56 +656,36 @@ function renderDetail(idx){
       <div class="mock-phone">
         <div class="mock-phone-notch"></div>
         <div class="mock-phone-screen" style="background:${st.bg}">
-          <div class="mock-phone-greeting" style="background:${st.gradient||st.primary}">
-            下午好，同学 👋
-            <small>今天有 2 节课</small>
-          </div>
-          <div class="mock-phone-grid">
-            <div class="mock-phone-card" style="background:${st.primary}15">
-              <div class="icon">📋</div>
-              <div class="text" style="color:${st.primary}">今日课程</div>
-              <div class="sub">2 节待上</div>
+          <div class="preview-shell" style="background:${st.card};min-height:100%;padding:10px">
+            <div class="preview-grid" style="min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+              <div class="preview-block" style="grid-column:span 2;background:${st.gradient||st.primary};min-height:52px">顶部信息区</div>
+              <div class="preview-block light" style="background:${st.primary}18;min-height:66px">视频库</div>
+              <div class="preview-block light" style="background:${st.accent}20;min-height:66px">成绩查询</div>
+              <div class="preview-block light" style="background:${st.secondary}18;min-height:66px">个人中心</div>
+              <div class="preview-block light" style="background:${st.primary}14;min-height:66px">快捷入口区</div>
+              <div class="preview-block" style="grid-column:span 2;background:${st.primary};min-height:44px">底部操作区</div>
             </div>
-            <div class="mock-phone-card" style="background:${st.accent}15">
-              <div class="icon">✅</div>
-              <div class="text" style="color:${st.accent}">签到打卡</div>
-              <div class="sub">点击签到</div>
-            </div>
-            <div class="mock-phone-card" style="background:${st.secondary}15">
-              <div class="icon">📊</div>
-              <div class="text" style="color:${st.secondary}">练习记录</div>
-              <div class="sub">本周 5 小时</div>
-            </div>
-            <div class="mock-phone-card" style="background:${st.primary}15">
-              <div class="icon">🏆</div>
-              <div class="text" style="color:${st.primary}">我的成绩</div>
-              <div class="sub">查看详情</div>
-            </div>
-          </div>
-          <div style="background:${st.primary};color:#fff;text-align:center;padding:10px;border-radius:10px;font-size:11px;font-weight:600">
-            📅 14:00 - 15:30 声乐课 · 王老师
           </div>
         </div>
       </div>
       <div class="student-side">
-        <div style="background:${st.bg};border-radius:12px;padding:16px;border:1px solid ${st.border}">
-          <div style="font-size:13px;font-weight:700;color:${st.text};margin-bottom:12px">学生端特色</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            ${['渐变按钮：'+(st.gradient?'使用渐变':'使用纯色'),'主色调：'+st.primary,'强调色：'+st.accent].map(item=>
-              `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:${st.muted}">
-                <span style="width:6px;height:6px;border-radius:50%;background:${st.primary}"></span>${item}
-              </div>`
-            ).join('')}
+        <div class="mock-card" style="border-color:${st.border}">
+          <div class="mock-card-header" style="background:${st.primary}">小程序端模块布局预览</div>
+          <div class="mock-card-body mock-card-body-scroll" style="background:${st.bg}">
+            <div class="preview-shell" style="background:${st.card}">
+              <div class="preview-grid">
+                <div class="preview-block preview-col-12" style="background:${st.gradient||st.primary}">顶部入口区</div>
+                <div class="preview-block preview-col-6 light" style="background:${st.primary}16">视频库</div>
+                <div class="preview-block preview-col-6 light" style="background:${st.secondary}16">成绩查询</div>
+                <div class="preview-block preview-col-4 light" style="background:${st.accent}1f">个人中心</div>
+                <div class="preview-block preview-col-4 light" style="background:${st.primary}15">常用功能区</div>
+                <div class="preview-block preview-col-4 light" style="background:${st.secondary}16">消息提示区</div>
+                <div class="preview-block preview-col-8 light" style="background:${st.bg};border-color:${st.border}">内容流区</div>
+                <div class="preview-block preview-col-4 light" style="background:${st.accent}1f">辅助操作区</div>
+                <div class="preview-block preview-col-12" style="background:${st.primary}">底部导航区</div>
+              </div>
+            </div>
           </div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <div class="mock-btn" style="background:${st.primary};color:#fff">主色按钮</div>
-          <div class="mock-btn" style="background:${st.accent};color:#fff">强调按钮</div>
-          <div class="mock-btn" style="background:${st.secondary};color:#fff">辅色按钮</div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <div class="mock-btn" style="background:${st.success||'#34C77B'};color:#fff">签到成功</div>
-          <div class="mock-btn" style="background:${st.warning||'#F5A623'};color:#fff">课程提醒</div>
         </div>
       </div>
     </div>
