@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>艺考培训班教务系统 — 逻辑框架 & 展示原型</title>
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --primary:#6366f1;
+    --primary-dark:#4f46e5;
+    --primary-light:#eef2ff;
+    --accent:#8b5cf6;
+    --success:#10b981;
+    --warning:#f59e0b;
+    --danger:#ef4444;
+    --bg:#eef1f5;
+    --surface:#fff;
+    --text:#1a1a2e;
+    --text-secondary:#64748b;
+    --border:#e2e8f0;
+    --radius:12px;
+    --radius-sm:8px;
+    --shadow:0 4px 16px rgba(0,0,0,.08);
+    --font:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Hiragino Sans GB','Microsoft YaHei',sans-serif;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  html{scroll-behavior:smooth}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6}
+
+  /* Header */
+  .header{
+    position:sticky;top:0;z-index:100;
+    background:rgba(238,241,245,.92);backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+    padding:0 32px;height:64px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .header__brand{display:flex;align-items:center;gap:12px}
+  .header__logo{
+    width:36px;height:36px;border-radius:10px;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:18px;font-weight:800;
+  }
+  .header__title{font-size:17px;font-weight:700}
+  .header__title span{color:var(--primary)}
+  .header__nav{display:flex;gap:8px}
+  .header__btn{
+    padding:8px 18px;border:none;border-radius:20px;
+    font-size:13px;font-weight:600;cursor:pointer;
+    background:var(--surface);color:var(--text-secondary);
+    border:1.5px solid var(--border);transition:all .25s var(--ease);
+    font-family:var(--font);
+  }
+  .header__btn:hover{border-color:var(--primary);color:var(--primary)}
+  .header__btn--active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 12px rgba(99,102,241,.35)}
+
+  .container{max-width:1440px;margin:0 auto;padding:28px 32px 48px}
+  .view{display:none;animation:fadeUp .4s var(--ease)}
+  .view--active{display:block}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  .section-title{font-size:20px;font-weight:700;margin-bottom:6px}
+  .section-desc{font-size:14px;color:var(--text-secondary);margin-bottom:24px}
+
+  /* ===== 结构图 ===== */
+  .arch-grid{display:grid;grid-template-columns:1fr;gap:24px}
+
+  .arch-card{
+    background:var(--surface);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .arch-card__head{
+    padding:16px 24px;font-size:15px;font-weight:700;
+    display:flex;align-items:center;gap:10px;
+    border-bottom:1px solid var(--border);
+  }
+  .arch-card__head .badge{
+    font-size:11px;font-weight:600;padding:3px 10px;border-radius:12px;
+  }
+  .arch-card__body{padding:24px}
+
+  /* 角色条 */
+  .role-bar{
+    display:flex;flex-wrap:wrap;gap:12px;margin-bottom:28px;
+  }
+  .role-chip{
+    display:flex;align-items:center;gap:8px;
+    padding:10px 18px;border-radius:var(--radius-sm);
+    font-size:13px;font-weight:600;
+    border:2px solid transparent;
+  }
+  .role-chip__icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff}
+  .role-chip--admin{background:#fef3c7;border-color:#f59e0b;color:#92400e}
+  .role-chip--admin .role-chip__icon{background:#f59e0b}
+  .role-chip--teacher{background:#dbeafe;border-color:#3b82f6;color:#1e40af}
+  .role-chip--teacher .role-chip__icon{background:#3b82f6}
+  .role-chip--student{background:#d1fae5;border-color:#10b981;color:#065f46}
+  .role-chip--student .role-chip__icon{background:#10b981}
+  .role-chip--parent{background:#ede9fe;border-color:#8b5cf6;color:#5b21b6}
+  .role-chip--parent .role-chip__icon{background:#8b5cf6}
+  .role-chip__meta{font-size:11px;font-weight:500;opacity:.75}
+
+  /* 双端布局树 */
+  .platform-split{
+    display:grid;grid-template-columns:1fr 1fr;gap:24px;
+  }
+  @media(max-width:960px){.platform-split{grid-template-columns:1fr}}
+
+  .platform-box{
+    border:2px solid var(--border);border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .platform-box__title{
+    padding:14px 20px;font-size:14px;font-weight:700;
+    display:flex;align-items:center;gap:8px;
+  }
+  .platform-box__title--web{background:linear-gradient(135deg,#6366f1,#818cf8);color:#fff}
+  .platform-box__title--mp{background:linear-gradient(135deg,#10b981,#34d399);color:#fff}
+  .platform-box__body{padding:20px;background:#fafbfc}
+
+  /* 树形结构 */
+  .tree{list-style:none}
+  .tree ul{list-style:none;padding-left:24px;margin-left:12px;border-left:2px solid var(--border)}
+  .tree > li > .tree-node{margin-bottom:8px}
+  .tree-node{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:8px 14px;border-radius:var(--radius-sm);
+    font-size:13px;font-weight:600;background:var(--surface);
+    border:1px solid var(--border);box-shadow:0 1px 3px rgba(0,0,0,.04);
+    transition:all .2s var(--ease);
+  }
+  .tree-node:hover{border-color:var(--primary);box-shadow:0 2px 8px rgba(99,102,241,.15)}
+  .tree-node--root{background:var(--primary-light);border-color:var(--primary);color:var(--primary-dark)}
+  .tree-node--module{background:#f8fafc}
+  .tree-node--leaf{font-weight:500;color:var(--text-secondary);font-size:12px;background:#fff}
+  .tree-node__dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .tree li{margin:6px 0}
+
+  /* 流程图 */
+  .flow-row{
+    display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+    margin:16px 0;
+  }
+  .flow-step{
+    padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;
+    background:var(--primary-light);color:var(--primary-dark);
+    border:1px solid rgba(99,102,241,.2);
+  }
+  .flow-arrow{color:var(--text-secondary);font-size:16px}
+
+  /* 数据库 ER 简图 */
+  .db-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;
+  }
+  .db-table{
+    border:1px solid var(--border);border-radius:var(--radius-sm);
+    overflow:hidden;font-size:12px;
+  }
+  .db-table__name{
+    padding:8px 12px;font-weight:700;background:var(--primary);color:#fff;
+    font-size:11px;font-family:'SF Mono',Menlo,monospace;
+  }
+  .db-table__fields{padding:8px 12px;background:#fff;color:var(--text-secondary);line-height:1.8}
+  .db-table__fields span{display:block;font-family:'SF Mono',Menlo,monospace;font-size:10px}
+
+  /* 技术栈 */
+  .tech-stack{
+    display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;
+  }
+  .tech-tag{
+    padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;
+    background:#f1f5f9;color:#475569;border:1px solid var(--border);
+  }
+
+  /* ===== WEB 端预览 ===== */
+  .web-preview-wrap{
+    background:var(--surface);border-radius:var(--radius);
+    box-shadow:var(--shadow);overflow:hidden;
+    border:1px solid var(--border);
+  }
+  .web-preview__toolbar{
+    height:40px;background:#f8fafc;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;padding:0 16px;gap:8px;
+  }
+  .web-preview__dot{width:10px;height:10px;border-radius:50%}
+  .web-preview__dot--r{background:#ef4444}
+  .web-preview__dot--y{background:#f59e0b}
+  .web-preview__dot--g{background:#10b981}
+  .web-preview__url{
+    flex:1;margin-left:12px;padding:4px 12px;
+    background:#fff;border:1px solid var(--border);border-radius:6px;
+    font-size:11px;color:var(--text-secondary);font-family:monospace;
+  }
+  .web-layout{display:flex;min-height:640px}
+  .web-sidebar{
+    width:220px;background:#1e1b4b;color:#c7d2fe;
+    display:flex;flex-direction:column;flex-shrink:0;
+  }
+  .web-sidebar__brand{
+    padding:20px 18px;font-size:15px;font-weight:700;color:#fff;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    display:flex;align-items:center;gap:10px;
+  }
+  .web-sidebar__brand-icon{
+    width:32px;height:32px;border-radius:8px;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    display:flex;align-items:center;justify-content:center;font-size:14px;
+  }
+  .web-sidebar__nav{flex:1;padding:12px 10px}
+  .web-nav-item{
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;border-radius:var(--radius-sm);
+    font-size:13px;font-weight:500;margin-bottom:4px;
+    cursor:pointer;transition:all .2s;
+  }
+  .web-nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+  .web-nav-item--active{background:var(--primary);color:#fff;font-weight:600}
+  .web-nav-item__icon{width:18px;text-align:center;opacity:.85}
+  .web-sidebar__user{
+    padding:16px 18px;border-top:1px solid rgba(255,255,255,.08);
+    display:flex;align-items:center;gap:10px;font-size:12px;
+  }
+  .web-sidebar__avatar{
+    width:32px;height:32px;border-radius:50%;
+    background:linear-gradient(135deg,#818cf8,#a78bfa);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+  }
+  .web-main{flex:1;background:#f1f5f9;display:flex;flex-direction:column;min-width:0}
+  .web-topbar{
+    height:52px;background:#fff;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+    padding:0 24px;flex-shrink:0;
+  }
+  .web-topbar__breadcrumb{font-size:13px;color:var(--text-secondary)}
+  .web-topbar__breadcrumb strong{color:var(--text);font-weight:600}
+  .web-topbar__actions{display:flex;gap:8px;align-items:center}
+  .web-topbar__search{
+    padding:6px 14px;border:1px solid var(--border);border-radius:20px;
+    font-size:12px;width:200px;background:#f8fafc;color:var(--text-secondary);
+  }
+  .web-content{flex:1;padding:24px;overflow:auto}
+  .web-page-title{font-size:20px;font-weight:700;margin-bottom:4px}
+  .web-page-sub{font-size:13px;color:var(--text-secondary);margin-bottom:20px}
+
+  /* 统计卡片 */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  @media(max-width:1100px){.stat-grid{grid-template-columns:repeat(2,1fr)}}
+  .stat-card{
+    background:#fff;border-radius:var(--radius-sm);padding:20px;
+    border:1px solid var(--border);position:relative;overflow:hidden;
+  }
+  .stat-card::before{
+    content:'';position:absolute;top:0;left:0;width:4px;height:100%;
+  }
+  .stat-card--blue::before{background:#6366f1}
+  .stat-card--green::before{background:#10b981}
+  .stat-card--purple::before{background:#8b5cf6}
+  .stat-card--orange::before{background:#f59e0b}
+  .stat-card__num{font-size:28px;font-weight:800;line-height:1.2}
+  .stat-card__label{font-size:12px;color:var(--text-secondary);margin-top:4px}
+  .stat-card__icon{
+    position:absolute;top:16px;right:16px;
+    width:40px;height:40px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;font-size:18px;
+  }
+  .stat-card--blue .stat-card__icon{background:#eef2ff}
+  .stat-card--green .stat-card__icon{background:#d1fae5}
+  .stat-card--purple .stat-card__icon{background:#ede9fe}
+  .stat-card--orange .stat-card__icon{background:#fef3c7}
+
+  /* 表格 */
+  .web-panel{
+    background:#fff;border-radius:var(--radius-sm);
+    border:1px solid var(--border);overflow:hidden;
+  }
+  .web-panel__head{
+    padding:16px 20px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .web-panel__title{font-size:14px;font-weight:700}
+  .web-panel__actions{display:flex;gap:8px}
+  .web-btn{
+    padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;
+    border:none;cursor:pointer;font-family:var(--font);
+  }
+  .web-btn--primary{background:var(--primary);color:#fff}
+  .web-btn--ghost{background:#f1f5f9;color:var(--text-secondary);border:1px solid var(--border)}
+  .web-table{width:100%;border-collapse:collapse;font-size:12px}
+  .web-table th{
+    text-align:left;padding:10px 16px;background:#f8fafc;
+    font-weight:600;color:var(--text-secondary);border-bottom:1px solid var(--border);
+  }
+  .web-table td{padding:12px 16px;border-bottom:1px solid #f1f5f9}
+  .web-table tr:last-child td{border-bottom:none}
+  .status-tag{
+    display:inline-block;padding:2px 10px;border-radius:12px;
+    font-size:11px;font-weight:600;
+  }
+  .status-tag--ok{background:#d1fae5;color:#065f46}
+  .status-tag--pending{background:#fef3c7;color:#92400e}
+  .status-tag--off{background:#fee2e2;color:#991b1b}
+
+  .web-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:900px){.web-grid-2{grid-template-columns:1fr}}
+
+  /* WEB 子页面切换 */
+  .web-subnav{display:flex;gap:4px;margin-bottom:20px;background:#fff;padding:4px;border-radius:var(--radius-sm);border:1px solid var(--border);width:fit-content}
+  .web-subnav__item{
+    padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;
+    cursor:pointer;color:var(--text-secondary);transition:all .2s;
+  }
+  .web-subnav__item--active{background:var(--primary);color:#fff}
+
+  .web-subpage{display:none}
+  .web-subpage--active{display:block}
+
+  /* ===== 小程序预览 ===== */
+  .mp-section{margin-bottom:40px}
+  .mp-section__head{
+    display:flex;align-items:center;gap:12px;margin-bottom:20px;
+  }
+  .mp-section__badge{
+    padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;color:#fff;
+  }
+  .mp-section__badge--teacher{background:#3b82f6}
+  .mp-section__badge--student{background:#10b981}
+  .mp-section__badge--parent{background:#8b5cf6}
+
+  .mp-phones{
+    display:flex;flex-wrap:wrap;gap:32px;justify-content:center;
+  }
+  .mp-phone-wrap{text-align:center}
+  .mp-phone-label{font-size:13px;font-weight:600;color:var(--text-secondary);margin-bottom:12px}
+
+  .phone{
+    width:280px;height:580px;border-radius:36px;
+    background:#111;box-shadow:0 20px 60px rgba(0,0,0,.2);
+    padding:12px;position:relative;overflow:hidden;
+  }
+  .phone__screen{
+    width:100%;height:100%;border-radius:28px;
+    background:#f5f5f5;overflow:hidden;
+    display:flex;flex-direction:column;position:relative;
+  }
+  .phone__status{
+    height:44px;background:#fff;display:flex;align-items:flex-end;
+    justify-content:center;padding-bottom:6px;flex-shrink:0;
+    position:relative;
+  }
+  .phone__notch{
+    width:100px;height:28px;background:#111;
+    border-radius:0 0 16px 16px;position:absolute;top:0;left:50%;transform:translateX(-50%);
+  }
+  .phone__nav-title{font-size:14px;font-weight:600;color:var(--text)}
+  .phone__body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .phone__tabbar{
+    height:56px;background:#fff;border-top:1px solid #eee;
+    display:flex;align-items:center;justify-content:space-around;
+    flex-shrink:0;padding-bottom:4px;
+  }
+  .phone__tab{
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    font-size:10px;color:#999;
+  }
+  .phone__tab--active{color:var(--primary)}
+  .phone__tab-icon{font-size:20px;line-height:1}
+
+  /* 小程序页面内容 */
+  .mp-header{
+    padding:16px;background:linear-gradient(135deg,var(--primary),var(--accent));
+    color:#fff;
+  }
+  .mp-header--green{background:linear-gradient(135deg,#059669,#34d399)}
+  .mp-header--purple{background:linear-gradient(135deg,#7c3aed,#a78bfa)}
+  .mp-header--blue{background:linear-gradient(135deg,#2563eb,#60a5fa)}
+  .mp-header__greet{font-size:18px;font-weight:700}
+  .mp-header__sub{font-size:12px;opacity:.85;margin-top:4px}
+  .mp-header__stats{
+    display:flex;gap:12px;margin-top:16px;
+  }
+  .mp-header__stat{
+    flex:1;background:rgba(255,255,255,.15);border-radius:10px;
+    padding:10px;text-align:center;backdrop-filter:blur(4px);
+  }
+  .mp-header__stat-num{font-size:20px;font-weight:800}
+  .mp-header__stat-label{font-size:10px;opacity:.8;margin-top:2px}
+
+  .mp-card{
+    margin:12px;background:#fff;border-radius:12px;
+    padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.06);
+  }
+  .mp-card__title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+  .mp-card__more{font-size:11px;color:var(--primary);font-weight:500}
+
+  .mp-menu-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:12px;
+    padding:12px;
+  }
+  .mp-menu-item{text-align:center}
+  .mp-menu-item__icon{
+    width:44px;height:44px;border-radius:12px;margin:0 auto 6px;
+    display:flex;align-items:center;justify-content:center;font-size:20px;
+  }
+  .mp-menu-item__label{font-size:11px;color:var(--text);font-weight:500}
+
+  .mp-score-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:10px 0;border-bottom:1px solid #f1f5f9;
+  }
+  .mp-score-item:last-child{border-bottom:none}
+  .mp-score-item__subject{font-size:13px;font-weight:600}
+  .mp-score-item__date{font-size:10px;color:#999;margin-top:2px}
+  .mp-score-item__score{font-size:18px;font-weight:800;color:var(--primary)}
+
+  .mp-chart{
+    height:80px;background:linear-gradient(180deg,#eef2ff 0%,transparent 100%);
+    border-radius:8px;margin-top:8px;position:relative;overflow:hidden;
+  }
+  .mp-chart__line{
+    position:absolute;bottom:10px;left:10px;right:10px;height:50px;
+  }
+  .mp-chart__line svg{width:100%;height:100%}
+
+  .mp-video-item{
+    display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #f1f5f9;
+  }
+  .mp-video-item:last-child{border-bottom:none}
+  .mp-video-item__thumb{
+    width:64px;height:48px;border-radius:8px;
+    background:linear-gradient(135deg,#6366f1,#a78bfa);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:18px;flex-shrink:0;
+  }
+  .mp-video-item__info{flex:1;min-width:0}
+  .mp-video-item__title{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mp-video-item__meta{font-size:10px;color:#999;margin-top:4px}
+
+  .mp-leave-card{
+    background:#fffbeb;border:1px solid #fde68a;border-radius:10px;
+    padding:12px;margin-top:8px;
+  }
+  .mp-leave-card__status{font-size:11px;font-weight:700;color:#d97706}
+  .mp-leave-card__text{font-size:12px;margin-top:4px;color:#78350f}
+
+  .mp-profile{
+    display:flex;align-items:center;gap:14px;padding:16px;
+  }
+  .mp-profile__avatar{
+    width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(135deg,var(--primary),var(--accent));
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:22px;font-weight:700;
+  }
+  .mp-profile__name{font-size:16px;font-weight:700}
+  .mp-profile__role{font-size:12px;color:var(--text-secondary);margin-top:2px}
+
+  .mp-list-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;background:#fff;border-bottom:1px solid #f1f5f9;
+    font-size:13px;
+  }
+  .mp-list-item__arrow{color:#ccc;font-size:14px}
+
+  .mp-child-switch{
+    display:flex;gap:8px;padding:0 12px 12px;overflow-x:auto;
+  }
+  .mp-child-chip{
+    padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;
+    white-space:nowrap;border:1.5px solid var(--border);color:var(--text-secondary);
+  }
+  .mp-child-chip--active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+  /* 图例 */
+  .legend{
+    display:flex;flex-wrap:wrap;gap:16px;margin-top:20px;
+    padding:16px;background:#f8fafc;border-radius:var(--radius-sm);
+    font-size:12px;color:var(--text-secondary);
+  }
+  .legend__item{display:flex;align-items:center;gap:6px}
+  .legend__dot{width:10px;height:10px;border-radius:3px}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__brand">
+    <div class="header__logo">艺</div>
+    <div class="header__title">艺考培训班教务系统 <span>原型</span></div>
+  </div>
+  <nav class="header__nav">
+    <button class="header__btn header__btn--active" data-view="structure">系统结构图</button>
+    <button class="header__btn" data-view="web">WEB 端预览</button>
+    <button class="header__btn" data-view="miniprogram">小程序端预览</button>
+  </nav>
+</header>
+
+<main class="container">
+
+  <!-- ========== 系统结构图 ========== -->
+  <section id="view-structure" class="view view--active">
+    <h2 class="section-title">系统逻辑框架结构图</h2>
+    <p class="section-desc">基于需求文档 v0.1，展示角色体系、双端功能模块划分、核心数据表及关键业务流程。</p>
+
+    <div class="arch-grid">
+
+      <!-- 角色体系 -->
+      <div class="arch-card">
+        <div class="arch-card__head">
+          👥 角色体系
+          <span class="badge" style="background:#eef2ff;color:#6366f1">RBAC 权限模型</span>
+        </div>
+        <div class="arch-card__body">
+          <div class="role-bar">
+            <div class="role-chip role-chip--admin">
+              <div class="role-chip__icon">教</div>
+              <div>
+                <div>教务 admin</div>
+                <div class="role-chip__meta">WEB 端 · 最高管理权限</div>
+              </div>
+            </div>
+            <div class="role-chip role-chip--teacher">
+              <div class="role-chip__icon">师</div>
+              <div>
+                <div>教师 teacher</div>
+                <div class="role-chip__meta">WEB + 小程序 · 班级教学管理</div>
+              </div>
+            </div>
+            <div class="role-chip role-chip--student">
+              <div class="role-chip__icon">学</div>
+              <div>
+                <div>学生 student</div>
+                <div class="role-chip__meta">小程序 · 成绩/视频/请假</div>
+              </div>
+            </div>
+            <div class="role-chip role-chip--parent">
+              <div class="role-chip__icon">家</div>
+              <div>
+                <div>家长 parent</div>
+                <div class="role-chip__meta">小程序 · 查看子女信息</div>
+              </div>
+            </div>
+          </div>
+          <div class="tech-stack">
+            <span class="tech-tag">JWT 认证</span>
+            <span class="tech-tag">微信 OAuth</span>
+            <span class="tech-tag">用户 → 角色 → 权限</span>
+            <span class="tech-tag">菜单级权限粒度</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 双端功能树 -->
+      <div class="arch-card">
+        <div class="arch-card__head">🗂 双端功能模块树</div>
+        <div class="arch-card__body">
+          <div class="platform-split">
+
+            <!-- WEB 端 -->
+            <div class="platform-box">
+              <div class="platform-box__title platform-box__title--web">🖥 WEB 端（教务 / 教师）</div>
+              <div class="platform-box__body">
+                <ul class="tree">
+                  <li>
+                    <div class="tree-node tree-node--root"><span class="tree-node__dot" style="background:#6366f1"></span>WEB 管理后台</div>
+                    <ul>
+                      <li>
+                        <div class="tree-node tree-node--module">📊 数据仪表盘</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">教务：教师/学生/视频/咨询统计</div></li>
+                          <li><div class="tree-node tree-node--leaf">教师：学生/家长/视频/咨询统计</div></li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="tree-node tree-node--module">👤 人员信息管理</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">基本信息编辑</div></li>
+                          <li><div class="tree-node tree-node--leaf">账号启用/禁用</div></li>
+                          <li><div class="tree-node tree-node--leaf">年级/班级分组</div></li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="tree-node tree-node--module">🎬 视频管理</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">视频审核（查看/编辑/删除）</div></li>
+                          <li><div class="tree-node tree-node--leaf">教学评论（教师点评）</div></li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="tree-node tree-node--module">📝 成绩管理</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">Excel 批量导入</div></li>
+                          <li><div class="tree-node tree-node--leaf">单条增删改</div></li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="tree-node tree-node--module">📚 字典管理</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">视频标签</div></li>
+                          <li><div class="tree-node tree-node--leaf">年级/班级</div></li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="tree-node tree-node--module">🔐 权限配置</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">角色权限分配</div></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- 小程序端 -->
+            <div class="platform-box">
+              <div class="platform-box__title platform-box__title--mp">📱 微信小程序端</div>
+              <div class="platform-box__body">
+                <ul class="tree">
+                  <li>
+                    <div class="tree-node tree-node--root" style="background:#d1fae5;border-color:#10b981;color:#065f46"><span class="tree-node__dot" style="background:#10b981"></span>微信小程序</div>
+                    <ul>
+                      <li>
+                        <div class="tree-node tree-node--module">👨‍🏫 教师端</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">微信授权 & 信息录入</div></li>
+                          <li><div class="tree-node tree-node--leaf">成绩查询（班级/排名/趋势）</div></li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="tree-node tree-node--module">🎓 学生端</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">微信授权 & 信息录入</div></li>
+                          <li><div class="tree-node tree-node--leaf">视频（查看/上传）</div></li>
+                          <li><div class="tree-node tree-node--leaf">成绩查询（历史/排名/趋势/点评）</div></li>
+                          <li><div class="tree-node tree-node--leaf">在校表现（请假/违纪记录）</div></li>
+                          <li><div class="tree-node tree-node--leaf">个人中心</div></li>
+                        </ul>
+                      </li>
+                      <li>
+                        <div class="tree-node tree-node--module">👪 家长端</div>
+                        <ul>
+                          <li><div class="tree-node tree-node--leaf">微信授权 & 关联子女</div></li>
+                          <li><div class="tree-node tree-node--leaf">个人信息</div></li>
+                          <li><div class="tree-node tree-node--leaf">子女成绩查看</div></li>
+                          <li><div class="tree-node tree-node--leaf">子女视频 & 教师评论</div></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 业务流程 -->
+      <div class="arch-card">
+        <div class="arch-card__head">🔄 核心业务流程</div>
+        <div class="arch-card__body">
+          <p style="font-size:13px;font-weight:600;margin-bottom:8px;color:var(--text-secondary)">请假审批流程</p>
+          <div class="flow-row">
+            <span class="flow-step">学生提交申请</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">班主任审核</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">教务审批（可选）</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">通知家长（可选）</span>
+          </div>
+          <p style="font-size:13px;font-weight:600;margin:20px 0 8px;color:var(--text-secondary)">视频审核流程</p>
+          <div class="flow-row">
+            <span class="flow-step">学生上传视频</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">pending 待审核</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">approved / rejected</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-step">教师提交点评</span>
+          </div>
+          <p style="font-size:13px;font-weight:600;margin:20px 0 8px;color:var(--text-secondary)">成绩科目维度</p>
+          <div class="flow-row">
+            <span class="flow-step" style="background:#dbeafe;color:#1e40af">日常：练声·鉴赏·乐理·写作·理论</span>
+            <span class="flow-step" style="background:#ede9fe;color:#5b21b6">大考：视唱·声乐·器乐·总成·排名</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据库 -->
+      <div class="arch-card">
+        <div class="arch-card__head">🗄 数据库核心表</div>
+        <div class="arch-card__body">
+          <div class="db-grid">
+            <div class="db-table"><div class="db-table__name">users</div><div class="db-table__fields"><span>user_id · role</span><span>name · phone</span><span>openid · is_active</span></div></div>
+            <div class="db-table"><div class="db-table__name">grades</div><div class="db-table__fields"><span>grade_id · name</span><span>sort</span></div></div>
+            <div class="db-table"><div class="db-table__name">classes</div><div class="db-table__fields"><span>class_id · grade_id</span><span>name</span></div></div>
+            <div class="db-table"><div class="db-table__name">student_profiles</div><div class="db-table__fields"><span>class_id · dorm</span><span>声乐/器乐/班主任</span></div></div>
+            <div class="db-table"><div class="db-table__name">teacher_profiles</div><div class="db-table__fields"><span>职务 · 科目</span><span>带班信息</span></div></div>
+            <div class="db-table"><div class="db-table__name">parent_profiles</div><div class="db-table__fields"><span>家长扩展信息</span></div></div>
+            <div class="db-table"><div class="db-table__name">parent_student</div><div class="db-table__fields"><span>parent_id</span><span>student_id</span></div></div>
+            <div class="db-table"><div class="db-table__name">videos</div><div class="db-table__fields"><span>url · status</span><span>tags · uploader</span></div></div>
+            <div class="db-table"><div class="db-table__name">video_comments</div><div class="db-table__fields"><span>video_id</span><span>teacher_id · content</span></div></div>
+            <div class="db-table"><div class="db-table__name">scores</div><div class="db-table__fields"><span>subject · score</span><span>exam_date · type</span></div></div>
+            <div class="db-table"><div class="db-table__name">leave_requests</div><div class="db-table__fields"><span>type · reason</span><span>status 流转</span></div></div>
+            <div class="db-table"><div class="db-table__name">discipline_records</div><div class="db-table__fields"><span>违纪记录</span></div></div>
+            <div class="db-table"><div class="db-table__name">dict_items</div><div class="db-table__fields"><span>dict_type · value</span><span>label · sort</span></div></div>
+            <div class="db-table"><div class="db-table__name">role_permissions</div><div class="db-table__fields"><span>role · menu_id</span></div></div>
+          </div>
+          <div class="legend">
+            <div class="legend__item"><div class="legend__dot" style="background:var(--primary)"></div>用户 & 组织</div>
+            <div class="legend__item"><div class="legend__dot" style="background:var(--success)"></div>业务数据</div>
+            <div class="legend__item"><div class="legend__dot" style="background:var(--accent)"></div>系统配置</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 技术栈 -->
+      <div class="arch-card">
+        <div class="arch-card__head">⚙️ 技术栈建议</div>
+        <div class="arch-card__body">
+          <div class="tech-stack">
+            <span class="tech-tag">Vue 3 + Vite + Element Plus</span>
+            <span class="tech-tag">微信原生 / Taro / uni-app</span>
+            <span class="tech-tag">FastAPI (Python)</span>
+            <span class="tech-tag">MySQL + Redis</span>
+            <span class="tech-tag">腾讯云 COS / MinIO</span>
+            <span class="tech-tag">JWT + 微信 OAuth</span>
+          </div>
+          <p style="font-size:12px;color:var(--text-secondary);margin-top:16px">
+            开发优先级：P0 认证 & 人员管理 → P1 成绩 & 视频 → P2 请假 & 仪表盘 → P3 权限 UI & 通知推送
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== WEB 端预览 ========== -->
+  <section id="view-web" class="view">
+    <h2 class="section-title">WEB 端展示效果</h2>
+    <p class="section-desc">面向教务与教师的大屏管理后台，支持批量操作与数据概览。</p>
+
+    <div class="web-preview-wrap">
+      <div class="web-preview__toolbar">
+        <span class="web-preview__dot web-preview__dot--r"></span>
+        <span class="web-preview__dot web-preview__dot--y"></span>
+        <span class="web-preview__dot web-preview__dot--g"></span>
+        <div class="web-preview__url">https://admin.yikao-school.com/dashboard</div>
+      </div>
+      <div class="web-layout">
+        <!-- 侧边栏 -->
+        <aside class="web-sidebar">
+          <div class="web-sidebar__brand">
+            <div class="web-sidebar__brand-icon">艺</div>
+            艺考教务系统
+          </div>
+          <nav class="web-sidebar__nav">
+            <div class="web-nav-item web-nav-item--active" data-web="dashboard"><span class="web-nav-item__icon">📊</span>数据仪表盘</div>
+            <div class="web-nav-item" data-web="users"><span class="web-nav-item__icon">👤</span>人员管理</div>
+            <div class="web-nav-item" data-web="videos"><span class="web-nav-item__icon">🎬</span>视频管理</div>
+            <div class="web-nav-item" data-web="scores"><span class="web-nav-item__icon">📝</span>成绩管理</div>
+            <div class="web-nav-item" data-web="dict"><span class="web-nav-item__icon">📚</span>字典管理</div>
+            <div class="web-nav-item" data-web="perm"><span class="web-nav-item__icon">🔐</span>权限配置</div>
+          </nav>
+          <div class="web-sidebar__user">
+            <div class="web-sidebar__avatar">张</div>
+            <div>
+              <div style="color:#fff;font-weight:600">张教务</div>
+              <div style="opacity:.6;font-size:11px">admin · 教务管理员</div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- 主内容 -->
+        <div class="web-main">
+          <div class="web-topbar">
+            <div class="web-topbar__breadcrumb">首页 / <strong id="web-breadcrumb">数据仪表盘</strong></div>
+            <div class="web-topbar__actions">
+              <input class="web-topbar__search" placeholder="搜索学生、教师..." readonly>
+              <button class="web-btn web-btn--ghost">🔔</button>
+            </div>
+          </div>
+          <div class="web-content">
+
+            <!-- 仪表盘 -->
+            <div id="web-page-dashboard" class="web-subpage web-subpage--active">
+              <div class="web-page-title">数据仪表盘</div>
+              <div class="web-page-sub">欢迎回来，张教务。以下是今日数据概览。</div>
+              <div class="stat-grid">
+                <div class="stat-card stat-card--blue">
+                  <div class="stat-card__num">28</div>
+                  <div class="stat-card__label">在职教师</div>
+                  <div class="stat-card__icon">👨‍🏫</div>
+                </div>
+                <div class="stat-card stat-card--green">
+                  <div class="stat-card__num">356</div>
+                  <div class="stat-card__label">在读学生</div>
+                  <div class="stat-card__icon">🎓</div>
+                </div>
+                <div class="stat-card stat-card--purple">
+                  <div class="stat-card__num">1,248</div>
+                  <div class="stat-card__label">视频资源</div>
+                  <div class="stat-card__icon">🎬</div>
+                </div>
+                <div class="stat-card stat-card--orange">
+                  <div class="stat-card__num">42</div>
+                  <div class="stat-card__label">待审视频</div>
+                  <div class="stat-card__icon">📋</div>
+                </div>
+              </div>
+              <div class="web-grid-2">
+                <div class="web-panel">
+                  <div class="web-panel__head">
+                    <div class="web-panel__title">待审核视频</div>
+                    <button class="web-btn web-btn--primary">查看全部</button>
+                  </div>
+                  <table class="web-table">
+                    <thead><tr><th>学生</th><th>标题</th><th>上传时间</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>李晓明</td><td>声乐练习 — 咏叹调</td><td>2026-05-29</td><td><span class="status-tag status-tag--pending">待审核</span></td></tr>
+                      <tr><td>王芳</td><td>器乐 — 钢琴协奏曲片段</td><td>2026-05-28</td><td><span class="status-tag status-tag--pending">待审核</span></td></tr>
+                      <tr><td>赵强</td><td>视唱练耳作业</td><td>2026-05-27</td><td><span class="status-tag status-tag--ok">已通过</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="web-panel">
+                  <div class="web-panel__head">
+                    <div class="web-panel__title">最近成绩录入</div>
+                    <button class="web-btn web-btn--ghost">批量导入</button>
+                  </div>
+                  <table class="web-table">
+                    <thead><tr><th>班级</th><th>科目</th><th>录入人</th><th>时间</th></tr></thead>
+                    <tbody>
+                      <tr><td>2025级 A班</td><td>大考声乐</td><td>陈老师</td><td>2026-05-30</td></tr>
+                      <tr><td>2025级 B班</td><td>乐理</td><td>刘老师</td><td>2026-05-29</td></tr>
+                      <tr><td>2024级 A班</td><td>大考总成</td><td>张老师</td><td>2026-05-28</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 人员管理 -->
+            <div id="web-page-users" class="web-subpage">
+              <div class="web-page-title">人员信息管理</div>
+              <div class="web-page-sub">管理系统内所有用户的基础信息，支持批量操作。</div>
+              <div class="web-subnav">
+                <div class="web-subnav__item web-subnav__item--active">全部用户</div>
+                <div class="web-subnav__item">学生</div>
+                <div class="web-subnav__item">教师</div>
+                <div class="web-subnav__item">家长</div>
+              </div>
+              <div class="web-panel">
+                <div class="web-panel__head">
+                  <div class="web-panel__title">用户列表（356 条）</div>
+                  <div class="web-panel__actions">
+                    <button class="web-btn web-btn--ghost">导出</button>
+                    <button class="web-btn web-btn--primary">+ 新增用户</button>
+                  </div>
+                </div>
+                <table class="web-table">
+                  <thead><tr><th>姓名</th><th>角色</th><th>班级</th><th>联系方式</th><th>状态</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr><td>李晓明</td><td>学生</td><td>2025级 A班</td><td>138****5678</td><td><span class="status-tag status-tag--ok">启用</span></td><td><button class="web-btn web-btn--ghost">编辑</button></td></tr>
+                    <tr><td>陈老师</td><td>教师</td><td>—</td><td>139****1234</td><td><span class="status-tag status-tag--ok">启用</span></td><td><button class="web-btn web-btn--ghost">编辑</button></td></tr>
+                    <tr><td>王家长</td><td>家长</td><td>—</td><td>137****9876</td><td><span class="status-tag status-tag--off">禁用</span></td><td><button class="web-btn web-btn--ghost">编辑</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 视频管理 -->
+            <div id="web-page-videos" class="web-subpage">
+              <div class="web-page-title">视频管理</div>
+              <div class="web-page-sub">审核学生上传的视频，并进行教学点评。</div>
+              <div class="web-panel">
+                <div class="web-panel__head">
+                  <div class="web-panel__title">视频列表</div>
+                  <div class="web-panel__actions">
+                    <button class="web-btn web-btn--ghost">筛选</button>
+                    <button class="web-btn web-btn--primary">待审核 (42)</button>
+                  </div>
+                </div>
+                <table class="web-table">
+                  <thead><tr><th>标题</th><th>学生</th><th>班级</th><th>标签</th><th>状态</th><th>操作</th></tr></thead>
+                  <tbody>
+                    <tr><td>声乐练习 — 咏叹调</td><td>李晓明</td><td>2025级 A班</td><td>声乐</td><td><span class="status-tag status-tag--pending">待审核</span></td><td><button class="web-btn web-btn--primary">审核</button></td></tr>
+                    <tr><td>钢琴协奏曲片段</td><td>王芳</td><td>2025级 B班</td><td>器乐</td><td><span class="status-tag status-tag--pending">待审核</span></td><td><button class="web-btn web-btn--primary">审核</button></td></tr>
+                    <tr><td>视唱作业 #12</td><td>赵强</td><td>2024级 A班</td><td>视唱</td><td><span class="status-tag status-tag--ok">已通过</span></td><td><button class="web-btn web-btn--ghost">点评</button></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 成绩管理 -->
+            <div id="web-page-scores" class="web-subpage">
+              <div class="web-page-title">成绩管理</div>
+              <div class="web-page-sub">录入和维护学生的学科成绩，支持 Excel 批量导入。</div>
+              <div class="web-panel">
+                <div class="web-panel__head">
+                  <div class="web-panel__title">成绩记录</div>
+                  <div class="web-panel__actions">
+                    <button class="web-btn web-btn--ghost">下载模板</button>
+                    <button class="web-btn web-btn--primary">📤 批量导入</button>
+                  </div>
+                </div>
+                <table class="web-table">
+                  <thead><tr><th>学生</th><th>科目</th><th>类型</th><th>分数</th><th>考试日期</th><th>录入教师</th></tr></thead>
+                  <tbody>
+                    <tr><td>李晓明</td><td>大考声乐</td><td>大考</td><td>92</td><td>2026-05-20</td><td>陈老师</td></tr>
+                    <tr><td>李晓明</td><td>乐理</td><td>日常</td><td>85</td><td>2026-05-15</td><td>刘老师</td></tr>
+                    <tr><td>王芳</td><td>大考排名</td><td>大考</td><td>12</td><td>2026-05-20</td><td>张老师</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- 字典管理 -->
+            <div id="web-page-dict" class="web-subpage">
+              <div class="web-page-title">字典管理</div>
+              <div class="web-page-sub">维护视频标签、年级与班级等基础数据。</div>
+              <div class="web-grid-2">
+                <div class="web-panel">
+                  <div class="web-panel__head"><div class="web-panel__title">年级/班级</div><button class="web-btn web-btn--primary">+ 新增</button></div>
+                  <table class="web-table">
+                    <thead><tr><th>年级</th><th>班级</th><th>人数</th></tr></thead>
+                    <tbody>
+                      <tr><td>2025级</td><td>A班</td><td>45</td></tr>
+                      <tr><td>2025级</td><td>B班</td><td>42</td></tr>
+                      <tr><td>2024级</td><td>A班</td><td>38</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="web-panel">
+                  <div class="web-panel__head"><div class="web-panel__title">视频标签</div><button class="web-btn web-btn--primary">+ 新增</button></div>
+                  <table class="web-table">
+                    <thead><tr><th>标签名</th><th>排序</th></tr></thead>
+                    <tbody>
+                      <tr><td>声乐</td><td>1</td></tr>
+                      <tr><td>器乐</td><td>2</td></tr>
+                      <tr><td>视唱</td><td>3</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- 权限配置 -->
+            <div id="web-page-perm" class="web-subpage">
+              <div class="web-page-title">权限配置</div>
+              <div class="web-page-sub">为四个固定角色分配可访问的功能模块。</div>
+              <div class="web-panel">
+                <div class="web-panel__head"><div class="web-panel__title">角色权限矩阵</div></div>
+                <table class="web-table">
+                  <thead><tr><th>功能模块</th><th>教务</th><th>教师</th><th>学生</th><th>家长</th></tr></thead>
+                  <tbody>
+                    <tr><td>数据仪表盘</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+                    <tr><td>人员管理</td><td>✅</td><td>—</td><td>—</td><td>—</td></tr>
+                    <tr><td>视频管理</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+                    <tr><td>成绩管理</td><td>✅</td><td>✅</td><td>—</td><td>—</td></tr>
+                    <tr><td>成绩查看（小程序）</td><td>—</td><td>✅</td><td>✅</td><td>✅</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== 小程序端预览 ========== -->
+  <section id="view-miniprogram" class="view">
+    <h2 class="section-title">微信小程序端展示效果</h2>
+    <p class="section-desc">面向教师、学生、家长的轻量化移动应用，强调即时触达与便捷查看。</p>
+
+    <!-- 教师端 -->
+    <div class="mp-section">
+      <div class="mp-section__head">
+        <span class="mp-section__badge mp-section__badge--teacher">教师端</span>
+        <span style="font-size:15px;font-weight:700">班级教学管理 · 成绩查询</span>
+      </div>
+      <div class="mp-phones">
+        <div class="mp-phone-wrap">
+          <div class="mp-phone-label">首页 / 工作台</div>
+          <div class="phone">
+            <div class="phone__screen">
+              <div class="phone__status"><div class="phone__notch"></div></div>
+              <div class="phone__body">
+                <div class="mp-header mp-header--blue">
+                  <div class="mp-header__greet">你好，陈老师 👋</div>
+                  <div class="mp-header__sub">2025级 A班 · 声乐教师</div>
+                  <div class="mp-header__stats">
+                    <div class="mp-header__stat"><div class="mp-header__stat-num">45</div><div class="mp-header__stat-label">本班学生</div></div>
+                    <div class="mp-header__stat"><div class="mp-header__stat-num">38</div><div class="mp-header__stat-label">关联家长</div></div>
+                    <div class="mp-header__stat"><div class="mp-header__stat-num">12</div><div class="mp-header__stat-label">待审视频</div></div>
+                  </div>
+                </div>
+                <div class="mp-menu-grid">
+                  <div class="mp-menu-item"><div class="mp-menu-item__icon" style="background:#dbeafe">📊</div><div class="mp-menu-item__label">成绩查询</div></div>
+                  <div class="mp-menu-item"><div class="mp-menu-item__icon" style="background:#ede9fe">🎬</div><div class="mp-menu-item__label">视频审核</div></div>
+                  <div class="mp-menu-item"><div class="mp-menu-item__icon" style="background:#d1fae5">✍️</div><div class="mp-menu-item__label">教学点评</div></div>
+                  <div class="mp-menu-item"><div class="mp-menu-item__icon" style="background:#fef3c7">👤</div><div class="mp-menu-item__label">个人信息</div></div>
+                </div>
+                <div class="mp-card">
+                  <div class="mp-card__title">班级成绩概览 <span class="mp-card__more">查看全部 ›</span></div>
+                  <div class="mp-score-item"><div><div class="mp-score-item__subject">大考声乐 · 班级均分</div><div class="mp-score-item__date">2026-05-20 大考</div></div><div class="mp-score-item__score">87.5</div></div>
+                  <div class="mp-score-item"><div><div class="mp-score-item__subject">乐理 · 班级均分</div><div class="mp-score-item__date">2026-05-15 日常</div></div><div class="mp-score-item__score">82.3</div></div>
+                </div>
+              </div>
+              <div class="phone__tabbar">
+                <div class="phone__tab phone__tab--active"><span class="phone__tab-icon">🏠</span>首页</div>
+                <div class="phone__tab"><span class="phone__tab-icon">📊</span>成绩</div>
+                <div class="phone__tab"><span class="phone__tab-icon">🎬</span>视频</div>
+                <div class="phone__tab"><span class="phone__tab-icon">👤</span>我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mp-phone-wrap">
+          <div class="mp-phone-label">成绩查询 / 趋势分析</div>
+          <div class="phone">
+            <div class="phone__screen">
+              <div class="phone__status"><div class="phone__notch"></div><div class="phone__nav-title">学生成绩</div></div>
+              <div class="phone__body">
+                <div style="padding:12px">
+                  <input style="width:100%;padding:10px 14px;border:1px solid #e2e8f0;border-radius:20px;font-size:12px;background:#fff" placeholder="🔍 搜索学生姓名..." readonly>
+                </div>
+                <div class="mp-card" style="margin-top:0">
+                  <div class="mp-card__title">李晓明 · 2025级 A班</div>
+                  <div class="mp-score-item"><div><div class="mp-score-item__subject">大考声乐</div><div class="mp-score-item__date">排名 5 / 45</div></div><div class="mp-score-item__score">92</div></div>
+                  <div class="mp-score-item"><div><div class="mp-score-item__subject">大考器乐</div><div class="mp-score-item__date">排名 8 / 45</div></div><div class="mp-score-item__score">88</div></div>
+                  <div class="mp-chart">
+                    <div class="mp-chart__line">
+                      <svg viewBox="0 0 200 50" preserveAspectRatio="none">
+                        <polyline fill="none" stroke="#6366f1" stroke-width="2" points="0,40 40,35 80,28 120,22 160,18 200,12"/>
+                        <circle cx="200" cy="12" r="3" fill="#6366f1"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div style="font-size:10px;color:#999;text-align:center;margin-top:4px">大考总成趋势 · 近 6 次</div>
+                </div>
+              </div>
+              <div class="phone__tabbar">
+                <div class="phone__tab"><span class="phone__tab-icon">🏠</span>首页</div>
+                <div class="phone__tab phone__tab--active"><span class="phone__tab-icon">📊</span>成绩</div>
+                <div class="phone__tab"><span class="phone__tab-icon">🎬</span>视频</div>
+                <div class="phone__tab"><span class="phone__tab-icon">👤</span>我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 学生端 -->
+    <div class="mp-section">
+      <div class="mp-section__head">
+        <span class="mp-section__badge mp-section__badge--student">学生端</span>
+        <span style="font-size:15px;font-weight:700">成绩 · 视频 · 在校表现</span>
+      </div>
+      <div class="mp-phones">
+        <div class="mp-phone-wrap">
+          <div class="mp-phone-label">首页</div>
+          <div class="phone">
+            <div class="phone__screen">
+              <div class="phone__status"><div class="phone__notch"></div></div>
+              <div class="phone__body">
+                <div class="mp-header mp-header--green">
+                  <div class="mp-header__greet">李晓明同学 🎵</div>
+                  <div class="mp-header__sub">2025级 A班 · 3号宿舍</div>
+                </div>
+                <div class="mp-menu-grid">
+                  <div class="mp-menu-item"><div class="mp-menu-item__icon" style="background:#d1fae5">📊</div><div class="mp-menu-item__label">我的成绩</div></div>
+                  <div class="mp-menu-item"><div class="mp-menu-item__icon" style="background:#dbeafe">🎬</div><div class="mp-menu-item__label">我的视频</div></div>
+                  <div class="mp-menu-item"><div class="mp-menu-item__icon" style="background:#fef3c7">📝</div><div class="mp-menu-item__label">请假申请</div></div>
+                  <div class="mp-menu-item"><div class="mp-menu-item__icon" style="background:#ede9fe">📋</div><div class="mp-menu-item__label">在校记录</div></div>
+                </div>
+                <div class="mp-card">
+                  <div class="mp-card__title">最近成绩 <span class="mp-card__more">全部 ›</span></div>
+                  <div class="mp-score-item"><div><div class="mp-score-item__subject">大考声乐</div><div class="mp-score-item__date">排名 5/45 · 2026-05-20</div></div><div class="mp-score-item__score">92</div></div>
+                  <div class="mp-score-item"><div><div class="mp-score-item__subject">乐理</div><div class="mp-score-item__date">2026-05-15</div></div><div class="mp-score-item__score">85</div></div>
+                </div>
+                <div class="mp-card">
+                  <div class="mp-card__title">教师点评</div>
+                  <div style="font-size:12px;color:#555;line-height:1.6;padding:8px;background:#f8fafc;border-radius:8px">
+                    "发声位置有明显进步，注意高音区的气息支撑，继续保持每日练声。"
+                    <div style="font-size:10px;color:#999;margin-top:6px">— 陈老师 · 声乐 · 05-28</div>
+                  </div>
+                </div>
+              </div>
+              <div class="phone__tabbar">
+                <div class="phone__tab phone__tab--active"><span class="phone__tab-icon">🏠</span>首页</div>
+                <div class="phone__tab"><span class="phone__tab-icon">📊</span>成绩</div>
+                <div class="phone__tab"><span class="phone__tab-icon">🎬</span>视频</div>
+                <div class="phone__tab"><span class="phone__tab-icon">👤</span>我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mp-phone-wrap">
+          <div class="mp-phone-label">视频 / 请假</div>
+          <div class="phone">
+            <div class="phone__screen">
+              <div class="phone__status"><div class="phone__notch"></div><div class="phone__nav-title">我的视频</div></div>
+              <div class="phone__body">
+                <div class="mp-card" style="margin-top:12px">
+                  <div class="mp-card__title">练习视频 <button style="float:right;padding:4px 12px;background:#6366f1;color:#fff;border:none;border-radius:12px;font-size:11px;font-weight:600">+ 上传</button></div>
+                  <div class="mp-video-item">
+                    <div class="mp-video-item__thumb">▶</div>
+                    <div class="mp-video-item__info">
+                      <div class="mp-video-item__title">声乐练习 — 咏叹调</div>
+                      <div class="mp-video-item__meta">待审核 · 05-29 上传</div>
+                    </div>
+                  </div>
+                  <div class="mp-video-item">
+                    <div class="mp-video-item__thumb" style="background:linear-gradient(135deg,#10b981,#34d399)">▶</div>
+                    <div class="mp-video-item__info">
+                      <div class="mp-video-item__title">视唱作业 #11</div>
+                      <div class="mp-video-item__meta">已通过 · 有教师点评</div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mp-card">
+                  <div class="mp-card__title">请假记录</div>
+                  <div class="mp-leave-card">
+                    <div class="mp-leave-card__status">⏳ 审批中</div>
+                    <div class="mp-leave-card__text">事假 · 2026-05-31 ~ 06-01<br>原因：回家办理证件</div>
+                  </div>
+                  <div style="font-size:11px;color:#999;margin-top:10px">历史：请假 2 次 · 违纪 0 次</div>
+                </div>
+              </div>
+              <div class="phone__tabbar">
+                <div class="phone__tab"><span class="phone__tab-icon">🏠</span>首页</div>
+                <div class="phone__tab"><span class="phone__tab-icon">📊</span>成绩</div>
+                <div class="phone__tab phone__tab--active"><span class="phone__tab-icon">🎬</span>视频</div>
+                <div class="phone__tab"><span class="phone__tab-icon">👤</span>我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mp-phone-wrap">
+          <div class="mp-phone-label">个人中心</div>
+          <div class="phone">
+            <div class="phone__screen">
+              <div class="phone__status"><div class="phone__notch"></div><div class="phone__nav-title">个人中心</div></div>
+              <div class="phone__body">
+                <div class="mp-profile">
+                  <div class="mp-profile__avatar">李</div>
+                  <div>
+                    <div class="mp-profile__name">李晓明</div>
+                    <div class="mp-profile__role">2025级 A班 · 男</div>
+                  </div>
+                </div>
+                <div class="mp-list-item"><span>联系方式</span><span class="mp-list-item__arrow">138****5678 ›</span></div>
+                <div class="mp-list-item"><span>宿舍</span><span class="mp-list-item__arrow">3号楼 302 ›</span></div>
+                <div class="mp-list-item"><span>声乐教师</span><span class="mp-list-item__arrow">陈老师 ›</span></div>
+                <div class="mp-list-item"><span>器乐教师</span><span class="mp-list-item__arrow">刘老师 ›</span></div>
+                <div class="mp-list-item"><span>班主任</span><span class="mp-list-item__arrow">张老师 ›</span></div>
+                <div class="mp-list-item"><span>编辑个人信息</span><span class="mp-list-item__arrow">›</span></div>
+              </div>
+              <div class="phone__tabbar">
+                <div class="phone__tab"><span class="phone__tab-icon">🏠</span>首页</div>
+                <div class="phone__tab"><span class="phone__tab-icon">📊</span>成绩</div>
+                <div class="phone__tab"><span class="phone__tab-icon">🎬</span>视频</div>
+                <div class="phone__tab phone__tab--active"><span class="phone__tab-icon">👤</span>我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 家长端 -->
+    <div class="mp-section">
+      <div class="mp-section__head">
+        <span class="mp-section__badge mp-section__badge--parent">家长端</span>
+        <span style="font-size:15px;font-weight:700">子女信息查看 · 成绩 & 视频</span>
+      </div>
+      <div class="mp-phones">
+        <div class="mp-phone-wrap">
+          <div class="mp-phone-label">首页 / 子女切换</div>
+          <div class="phone">
+            <div class="phone__screen">
+              <div class="phone__status"><div class="phone__notch"></div></div>
+              <div class="phone__body">
+                <div class="mp-header mp-header--purple">
+                  <div class="mp-header__greet">王家长，您好 👋</div>
+                  <div class="mp-header__sub">已绑定 1 位子女</div>
+                </div>
+                <div class="mp-child-switch">
+                  <div class="mp-child-chip mp-child-chip--active">李晓明</div>
+                  <div class="mp-child-chip">+ 绑定子女</div>
+                </div>
+                <div class="mp-card" style="margin-top:0">
+                  <div class="mp-card__title">李晓明 · 2025级 A班 <span class="mp-card__more">详情 ›</span></div>
+                  <div class="mp-score-item"><div><div class="mp-score-item__subject">大考总成</div><div class="mp-score-item__date">班级排名 5/45</div></div><div class="mp-score-item__score">89</div></div>
+                  <div class="mp-chart">
+                    <div class="mp-chart__line">
+                      <svg viewBox="0 0 200 50" preserveAspectRatio="none">
+                        <polyline fill="none" stroke="#8b5cf6" stroke-width="2" points="0,38 50,32 100,25 150,20 200,15"/>
+                      </svg>
+                    </div>
+                  </div>
+                  <div style="font-size:10px;color:#999;text-align:center;margin-top:4px">成绩趋势</div>
+                </div>
+                <div class="mp-card">
+                  <div class="mp-card__title">最新视频</div>
+                  <div class="mp-video-item">
+                    <div class="mp-video-item__thumb" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">▶</div>
+                    <div class="mp-video-item__info">
+                      <div class="mp-video-item__title">视唱作业 #11</div>
+                      <div class="mp-video-item__meta">陈老师已点评 · 05-28</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="phone__tabbar">
+                <div class="phone__tab phone__tab--active"><span class="phone__tab-icon">🏠</span>首页</div>
+                <div class="phone__tab"><span class="phone__tab-icon">📊</span>成绩</div>
+                <div class="phone__tab"><span class="phone__tab-icon">🎬</span>视频</div>
+                <div class="phone__tab"><span class="phone__tab-icon">👤</span>我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mp-phone-wrap">
+          <div class="mp-phone-label">个人信息</div>
+          <div class="phone">
+            <div class="phone__screen">
+              <div class="phone__status"><div class="phone__notch"></div><div class="phone__nav-title">个人中心</div></div>
+              <div class="phone__body">
+                <div class="mp-profile">
+                  <div class="mp-profile__avatar" style="background:linear-gradient(135deg,#8b5cf6,#a78bfa)">王</div>
+                  <div>
+                    <div class="mp-profile__name">王家长</div>
+                    <div class="mp-profile__role">关联子女：李晓明</div>
+                  </div>
+                </div>
+                <div class="mp-list-item"><span>姓名</span><span class="mp-list-item__arrow">王家长 ›</span></div>
+                <div class="mp-list-item"><span>联系方式</span><span class="mp-list-item__arrow">137****9876 ›</span></div>
+                <div class="mp-list-item"><span>绑定子女</span><span class="mp-list-item__arrow">李晓明 ›</span></div>
+                <div class="mp-list-item"><span>编辑个人信息</span><span class="mp-list-item__arrow">›</span></div>
+              </div>
+              <div class="phone__tabbar">
+                <div class="phone__tab"><span class="phone__tab-icon">🏠</span>首页</div>
+                <div class="phone__tab"><span class="phone__tab-icon">📊</span>成绩</div>
+                <div class="phone__tab"><span class="phone__tab-icon">🎬</span>视频</div>
+                <div class="phone__tab phone__tab--active"><span class="phone__tab-icon">👤</span>我的</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+  const views = ['structure','web','miniprogram'];
+  const btns = document.querySelectorAll('.header__btn');
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.view;
+      btns.forEach(b => b.classList.toggle('header__btn--active', b.dataset.view === target));
+      views.forEach(v => {
+        document.getElementById('view-' + v).classList.toggle('view--active', v === target);
+      });
+    });
+  });
+
+  const webNavItems = document.querySelectorAll('.web-nav-item[data-web]');
+  const webPages = document.querySelectorAll('.web-subpage');
+  const webTitles = {
+    dashboard:'数据仪表盘', users:'人员信息管理', videos:'视频管理',
+    scores:'成绩管理', dict:'字典管理', perm:'权限配置'
+  };
+  webNavItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const page = item.dataset.web;
+      webNavItems.forEach(n => n.classList.toggle('web-nav-item--active', n.dataset.web === page));
+      webPages.forEach(p => p.classList.toggle('web-subpage--active', p.id === 'web-page-' + page));
+      document.getElementById('web-breadcrumb').textContent = webTitles[page];
+    });
+  });
+})();
+</script>
+</body>
+</html>
